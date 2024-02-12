@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ESP32 WebSocket</title>
+	<style>
+		:root {
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			font-weight: normal;
+			font-size: 1rem;
+		}
+
+		.container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			border: 2px solid black;
+			flex-direction: column;
+		}
+
+		.btn-container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.title.active {
+			color: white;
+			background-color: green;
+		}
+
+		.title.deactive {
+			color: black;
+			background-color: red;
+		}
+
+		.btn {
+			border: 2px solid black;
+			border-radius: 10rem;
+		}
+
+		.btn.active {
+			color: white;
+			background-color: red;
+		}
+
+		.btn.deactive {
+			color: white;
+			background-color: green;
+		}
+
+		.error-msg {
+			display: none;
+			color: red;
+			font-weight: bold;
+		}
+
+		.show-error {
+			display: block;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1 id="title" class="title">Cargando...</h1>
+		<div class="btn-container">
+			<button id="btn" class="btn">Cargando...</button>
+		</div>
+		<h2 class="error-msg">Hubo un error con el ESP32. Desconexion</h2>
+	</div>
+	<script>
+		(() => {
+			const title = document.getElementById("title");
+			const btn = document.getElementById("btn");
+			const errorMsg = document.querySelector(".error-msg");
+			const wsUrl = "ws://192.168.1.5/toggle_led";
+			const ws = new WebSocket(wsUrl);
+
+			const toggleBtn = (bool) => {
+				if (bool) {
+					btn.innerText = "Apagalo Otto!!!";
+					btn.className = "btn active";
+				} else {
+					btn.innerText = "Prendele fuego!!!";
+					btn.className = "btn deactive";
+				}
+			};
+
+			const toggleTitle = (bool) => {
+				if (bool) {
+					title.innerText = "Esta encendido!!!";
+					title.className = "title active"
+				} else {
+					title.innerText = "Esta apagado!!!";
+					title.className = "title deactive";
+				}
+			};
+
+			const clickListener = () => {
+				const boolValue = btn.classList.contains("active");
+				ws.send(JSON.stringify(!boolValue));
+			};
+
+			ws.onmessage = (e) => {
+				const value = JSON.parse(e.data);
+				toggleBtn(value);
+				toggleTitle(value);
+			};
+
+			ws.onopen = () => {
+				errorMsg.classList.remove("show-error");
+				btn.addEventListener("click", clickListener);
+				ws.send("{}");
+			};
+
+			ws.onerror = () => {
+				btn.removeEventListener("click", clickListener);
+				errorMsg.classList.add("show-error");
+			}
+		})();
+	</script>
+</body>
+</html>

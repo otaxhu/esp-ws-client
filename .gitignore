@@ -1,2 +1,7 @@
 .devcontainer/
 .vscode/
+build/
+dependencies.lock
+sdkconfig.old
+sdkconfig
+.env
